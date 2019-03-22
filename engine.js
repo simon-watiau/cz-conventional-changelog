@@ -133,7 +133,7 @@ module.exports = function (options) {
 
         var footer = filter([ breaking, issues ]).join('\n\n');
 
-        commit(head + '\n\n' + body + '\n\n' + footer);
+        commit(head + '\n\n' + body + '\n\nbranch: ' + branch + '\n\n' + footer);
       });
     }
   };
