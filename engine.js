@@ -4,6 +4,7 @@ var wrap = require('word-wrap');
 var map = require('lodash.map');
 var longest = require('longest');
 var rightPad = require('right-pad');
+var child_process = require('child_process');
 
 var filter = function(array) {
   return array.filter(function(x) {
@@ -39,7 +40,13 @@ module.exports = function (options) {
     // By default, we'll de-indent your commit
     // template and will keep empty lines.
     prompter: function(cz, commit) {
-      console.log('\nLine 1 will be cropped at 100 characters. All other lines will be wrapped after 100 characters.\n');
+      branch = (child_process.execSync('git rev-parse --abbrev-ref HEAD') + '').replace(/\n$/, '');
+      diff = (child_process.execSync('git diff --stat --name-only --staged') + '').replace(/\n$/, '');
+
+      console.log("Branch: " + branch);
+      console.log('-------------------------');
+      console.log(diff);
+      console.log('-------------------------\n');
 
       // Let's ask some questions of the user
       // so that we can populate our commit
@@ -90,7 +97,7 @@ module.exports = function (options) {
         }, {
           type: 'input',
           name: 'issues',
-          message: 'Add issue references (e.g. "fix #123", "re #123".):\n',
+          message: 'Add issue references (' + branch + '):\n',
           when: function(answers) {
             return answers.isIssueAffected;
           },
