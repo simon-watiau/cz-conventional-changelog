@@ -40,8 +40,18 @@ module.exports = function (options) {
     // By default, we'll de-indent your commit
     // template and will keep empty lines.
     prompter: function(cz, commit) {
-      branch = (child_process.execSync('git rev-parse --abbrev-ref HEAD') + '').replace(/\n$/, '');
-      diff = (child_process.execSync('git diff --stat --name-only --staged') + '').replace(/\n$/, '');
+      var branch = (child_process.execSync('git rev-parse --abbrev-ref HEAD') + '').replace(/\n$/, '');
+      var diff = (child_process.execSync('git diff --stat --name-only --staged') + '').replace(/\n$/, '');
+
+      var maxLineWidth = 100;
+
+      var computeHead = function(type, scope, subject) {
+        scope = scope.trim();
+        scope = scope ? '(' + scope + ')' : '';
+        subject = subject.trim();
+
+        return type + scope + ': ' + subject;
+      };
 
       console.log("Branch: " + branch);
       console.log('-------------------------');
@@ -71,7 +81,16 @@ module.exports = function (options) {
           type: 'input',
           name: 'subject',
           message: 'Write a short, imperative tense description of the change:\n',
-          default: options.defaultSubject
+          default: options.defaultSubject,
+          validate: function(input, answers) {
+            var headLength = computeHead(answers.type, answers.scope, input).length;
+
+            if (headLength > maxLineWidth) {
+              return 'Line too long (' + headLength + ">" + maxLineWidth + ")";
+            }
+
+            return true;
+          }
         }, {
           type: 'input',
           name: 'body',
@@ -105,8 +124,6 @@ module.exports = function (options) {
         }
       ]).then(function(answers) {
 
-        var maxLineWidth = 100;
-
         var wrapOptions = {
           trim: true,
           newline: '\n',
@@ -114,12 +131,7 @@ module.exports = function (options) {
           width: maxLineWidth
         };
 
-        // parentheses are only needed when a scope is present
-        var scope = answers.scope.trim();
-        scope = scope ? '(' + answers.scope.trim() + ')' : '';
-
-        // Hard limit this line
-        var head = (answers.type + scope + ': ' + answers.subject.trim()).slice(0, maxLineWidth);
+        var head = computeHead(answers.type, answers.scope,  answers.subject);
 
         // Wrap these lines at 100 characters
         var body = wrap(answers.body, wrapOptions);
