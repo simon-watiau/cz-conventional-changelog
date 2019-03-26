@@ -43,7 +43,7 @@ module.exports = function (options) {
       var branch = (child_process.execSync('git rev-parse --abbrev-ref HEAD') + '').replace(/\n$/, '');
       var diff = (child_process.execSync('git diff --stat --name-only --staged') + '').replace(/\n$/, '');
 
-      var maxLineWidth = 100;
+      var maxLineWidth = 72;
 
       var computeHead = function(type, scope, subject) {
         scope = scope.trim();
